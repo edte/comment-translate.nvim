@@ -1,0 +1,209 @@
+*comment-translate.txt*  Neovim Comment Translate Plugin
+
+Author:  noir4y
+License: MIT
+
+INTRODUCTION                                    *comment-translate*
+
+A Neovim plugin for translating comments, strings, and selected text.
+
+REQUIREMENTS                                    *comment-translate-requirements*
+
+- Neovim 0.8+
+- plenary.nvim (required)
+- nvim-treesitter (recommended)
+- curl command (for translation API)
+- Internet connection
+- Translation uses the unofficial Google Translate HTTP endpoint via curl.
+  Network policy changes (proxy/firewall) or upstream API changes may break
+  translation; inform users in restricted environments.
+
+PRIVACY / DATA HANDLING                          *comment-translate-privacy*
+
+{comment-translate.nvim} sends the text you translate (comments, strings, or
+visual selections) to an external translation service over the network.
+
+- External transmission: Translation uses the unofficial Google Translate HTTP
+  endpoint (translate.googleapis.com) via curl.
+- What is sent: The target text content itself. If it contains personal data,
+  credentials, internal code, or other sensitive information, it may be sent
+  outside your environment.
+- Cache behavior: The built-in translation cache is in-memory only (no files
+  are written by the plugin). The cache is cleared when Neovim exits.
+- Recommendation: Avoid translating sensitive buffers/text in restricted or
+  compliance environments.
+
+INSTALLATION                                    *comment-translate-installation*
+
+Using lazy.nvim: >lua
+    {
+      'noir4y/comment-translate.nvim',
+      dependencies = {
+        'nvim-lua/plenary.nvim',
+        'nvim-treesitter/nvim-treesitter',
+      },
+      config = function()
+        require('comment-translate').setup({
+          target_language = 'ja',
+        })
+      end,
+    }
+<
+
+Using packer.nvim: >lua
+    use {
+      'noir4y/comment-translate.nvim',
+      requires = {
+        'nvim-lua/plenary.nvim',
+        'nvim-treesitter/nvim-treesitter',
+      },
+      config = function()
+        require('comment-translate').setup({
+          target_language = 'ja',
+        })
+      end,
+    }
+<
+
+CONFIGURATION                                   *comment-translate-config*
+
+Default configuration: >lua
+    require('comment-translate').setup({
+      target_language = 'ja',
+      translate_service = 'google',
+      hover = {
+        enabled = true,
+        delay = 500,
+        auto = true,
+      },
+      immersive = {
+        enabled = false,
+        mode = 'inline',
+        auto_detect = true,
+      },
+      cache = {
+        enabled = true,
+        max_entries = 1000,
+      },
+      max_length = 5000,
+      targets = {
+        comment = true,
+        string = true,
+      },
+      keymaps = {
+        hover = '<leader>th',
+        replace = '<leader>tr',
+        toggle = '<leader>tt',
+        mode = '<leader>tm',
+      },
+    })
+<
+
+Options:
+
+*comment-translate.target_language*
+    Target language code for translation (e.g., 'ja', 'en', 'zh').
+    Default: System locale or 'en'
+
+*comment-translate.translate_service*
+    Translation service to use: currently only 'google' is available.
+    Default: 'google'
+
+*comment-translate.hover.enabled*
+    Enable automatic hover translation.
+    Default: true
+
+*comment-translate.hover.delay*
+    Additional delay in milliseconds after CursorHold before showing hover.
+    Note: Total delay = 'updatetime' + hover.delay (see |'updatetime'|).
+    Default: 500
+
+*comment-translate.hover.auto*
+    Enable automatic hover on CursorHold. Set to false to use manual hover only.
+    Default: true
+
+*comment-translate.immersive.enabled*
+    Enable immersive translation on startup (global, affects all buffers).
+    Default: false
+
+*comment-translate.immersive.mode*
+    Display mode: 'inline' (beside original) or 'replace' (below original).
+    Default: 'inline'
+
+COMMANDS                                        *comment-translate-commands*
+
+*:CommentTranslateHover*
+    Translate comment/string at cursor and show in hover popup.
+
+*:CommentTranslateToggle*
+    Toggle immersive translation mode ON/OFF (global, affects all buffers).
+
+*:CommentTranslateMode*
+    Toggle immersive display mode (inline/replace).
+
+*:CommentTranslateUpdate*
+    Update immersive translation for current buffer.
+
+*:CommentTranslateReplace*
+    Translate selected text and replace it.
+
+*:CommentTranslateHealth*
+    Check plugin health and dependencies.
+
+*:CommentTranslateSetup*
+    Setup plugin with default settings.
+
+KEYMAPS                                         *comment-translate-keymaps*
+
+Default keymaps (can be customized via config):
+
+    <leader>th      Hover translation (normal mode)
+    <leader>tr      Replace selection with translation (visual mode)
+    <leader>tt      Toggle immersive translation
+    <leader>tm      Toggle display mode
+
+To disable a keymap, set it to `false`: >lua
+    keymaps = {
+      hover = false,  -- Disable hover keymap
+    }
+<
+
+USAGE                                           *comment-translate-usage*
+
+Hover Translation~
+Move cursor to a comment or string and wait for the delay, or press
+<leader>th to manually trigger translation.
+
+Timing: Hover appears after 'updatetime' + hover.delay milliseconds.
+To speed up hover, reduce both 'updatetime' and hover.delay.
+
+Immersive Translation~
+Run `:CommentTranslateToggle` to enable. All comments in the buffer
+will be translated and displayed inline or below the original text.
+
+Note: Immersive mode is GLOBAL. When enabled, it automatically applies
+to all buffers you switch to. Toggling OFF disables it for all buffers.
+
+Selection Replacement~
+Select text in visual mode, then run `:CommentTranslateReplace` or
+press <leader>tr to replace with translation.
+
+TROUBLESHOOTING                                 *comment-translate-troubleshooting*
+
+Translation not working~
+- Check internet connection
+- Verify curl is installed: `which curl`
+- Check plenary.nvim is installed: `:lua require('plenary')`
+
+Commands not found~
+- Ensure setup() is called: `require('comment-translate').setup({})`
+- Check plugin is loaded: `:lua require('comment-translate')`
+
+Run health check~
+`:CommentTranslateHealth`
+
+LICENSE                                         *comment-translate-license*
+
+MIT License
+
+ vim:tw=78:ts=8:ft=help:norl:
