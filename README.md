@@ -28,8 +28,7 @@ It translates comments and strings in code, helping developers understand multil
 - **External transmission**: Translation uses the unofficial Google Translate HTTP endpoint (`translate.googleapis.com`) via `curl`.
 - **What is sent**: The selected text / detected comment or string content. If it contains **personal data**, **credentials**, **internal code**, or other sensitive information, it may be transmitted outside your environment.
 - **Cache behavior**: The built-in cache is **in-memory only** (no files are written by the plugin). Once Neovim exits, the cache is cleared.
-- **Recommendation**: If you work in restricted/compliance environments, set `target_language` explicitly and consider disabling the plugin (or avoid translating sensitive buffers/text).
-
+- **Recommendation**: In confidential environments, set `hover.auto = false` to avoid automatic hover translation. Even if `hover.auto = true`, you can immediately stop auto hover with `:CommentTranslateHoverToggle`. Note that any text you translate (manual hover or other translation commands) is sent to the external API.
 ## Installation
 
 ### lazy.nvim
@@ -165,6 +164,8 @@ vim.keymap.set('n', '<leader>tt', '<Plug>(comment-translate-toggle)')
 
 ### Hover Translation
 
+![Hover translation demo](assets/hover-demo.png)
+
 When you hover over a comment or string, the translation result will automatically appear in a popup.
 
 **Timing**: The hover popup appears after `'updatetime'` (Neovim option, default
@@ -182,6 +183,8 @@ hover = { delay = 200 }   -- Shorter additional delay
 
 ### Immersive Translation
 
+![Immersive translation demo](assets/immersive-demo.png)
+
 Run `:CommentTranslateToggle` to translate and display all comments inline.
 
 **Note**: Immersive mode is **global** — when enabled, it automatically applies
@@ -192,21 +195,9 @@ Translations are displayed inline next to the original text.
 
 ### Translate and Replace Selected Text
 
+![Replace translation demo](assets/replace-demo.png)
+
 Select text in visual mode and run `:CommentTranslateReplace` to replace the selection with its translation.
-
-## Testing
-
-### Quick Test
-
-After installing the plugin, create a test file and verify:
-
-```lua
--- test.lua
--- This is a test comment
-local x = 1
-```
-
-Open the file in Neovim and hover over the comment to see the translation.
 
 ## License
 
