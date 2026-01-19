@@ -71,20 +71,29 @@ function M.cleanup_buffer(bufnr)
 end
 
 function M.hover_translate()
-  local text, _ = parser.get_text_at_cursor()
+  local context_mod = require('comment-translate.context')
+  local bufnr = vim.api.nvim_get_current_buf()
+  local text, node_type = parser.get_text_at_cursor()
   if not text then
     ui.hover.close()
     vim.notify('No comment or string found', vim.log.levels.INFO)
     return
   end
   
+  -- Show loading indicator if enabled
+  if config.config.hover.loading then
+    ui.hover.show_loading()
+  end
+  
+  local ctx = context_mod.collect(bufnr, nil, nil, node_type)
   translate.translate(text, nil, nil, function(result)
     if result then
       ui.hover.show(result)
     else
+      ui.hover.close()
       vim.notify('Translation failed', vim.log.levels.ERROR)
     end
-  end)
+  end, nil, ctx)
 end
 
 function M.toggle_auto_hover()

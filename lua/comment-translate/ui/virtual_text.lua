@@ -43,19 +43,34 @@ function M.show_inline(bufnr, line, translated_text)
     return
   end
 
+  -- Check buffer validity
+  if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+
+  -- Check line number validity (line is 0-indexed)
+  local line_count = vim.api.nvim_buf_line_count(bufnr)
+  if not line or line < 0 or line >= line_count then
+    return
+  end
+
   if extmarks[bufnr] and extmarks[bufnr][line] then
-    vim.api.nvim_buf_del_extmark(bufnr, ns_id, extmarks[bufnr][line])
+    pcall(vim.api.nvim_buf_del_extmark, bufnr, ns_id, extmarks[bufnr][line])
   end
 
   local line_content = vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)[1] or ''
   local col = #line_content
 
-  local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, line, col, {
+  local ok, mark_id = pcall(vim.api.nvim_buf_set_extmark, bufnr, ns_id, line, col, {
     virt_text = { { ' → ' .. translated_text, 'Comment' } },
     virt_text_pos = 'eol',
     hl_mode = 'combine',
   })
   
+  if not ok then
+    return
+  end
+
   if not extmarks[bufnr] then
     extmarks[bufnr] = {}
   end

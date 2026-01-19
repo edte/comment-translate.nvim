@@ -11,6 +11,7 @@
 ---@field enabled boolean
 ---@field delay number
 ---@field auto boolean Enable auto-hover on CursorHold (false = manual hover only)
+---@field loading boolean Show loading indicator while translating (default: true)
 
 ---@class CommentTranslateImmersiveConfig
 ---@field enabled boolean
@@ -54,6 +55,7 @@ local default_config = {
     enabled = true,
     delay = 500,
     auto = true,
+    loading = true,
   },
   immersive = {
     enabled = false,
@@ -103,11 +105,12 @@ local function validate(user_config)
   })
 
   if user_config.hover then
-    warn_unknown('hover', user_config.hover, { enabled = true, delay = true, auto = true })
+    warn_unknown('hover', user_config.hover, { enabled = true, delay = true, auto = true, loading = true })
     vim.validate({
       ['hover.enabled'] = { user_config.hover.enabled, 'boolean', true },
       ['hover.delay'] = { user_config.hover.delay, 'number', true },
       ['hover.auto'] = { user_config.hover.auto, 'boolean', true },
+      ['hover.loading'] = { user_config.hover.loading, 'boolean', true },
     })
   end
 

@@ -22,6 +22,7 @@ end
 
 function M.setup_hover(config, parser, translate, ui)
   local hover_group = vim.api.nvim_create_augroup('CommentTranslateHover', { clear = true })
+  local context_mod = require('comment-translate.context')
 
   manual_hover_refs.config = config
   manual_hover_refs.parser = parser
@@ -50,13 +51,21 @@ function M.setup_hover(config, parser, translate, ui)
         vim.schedule(function()
           local ok, err = pcall(function()
             if hover_timers[bufnr] == timer then
-              local text, _ = parser.get_text_at_cursor()
+              local text, node_type = parser.get_text_at_cursor()
               if text then
+                -- Show loading indicator if enabled
+                if config.config.hover.loading then
+                  ui.hover.show_loading()
+                end
+                -- Collect context for codebuddy
+                local ctx = context_mod.collect(bufnr, nil, nil, node_type)
                 translate.translate(text, nil, nil, function(result)
                   if result and hover_timers[bufnr] == timer then
                     ui.hover.show(result)
+                  else
+                    ui.hover.close()
                   end
-                end)
+                end, nil, ctx)
               else
                 ui.hover.close()
               end
@@ -165,24 +174,33 @@ end
 
 function M.show_hover_on_demand()
   local refs = manual_hover_refs
-  if not refs.parser or not refs.translate or not refs.ui then
+  if not refs.parser or not refs.translate or not refs.ui or not refs.config then
     vim.notify('comment-translate: hover not initialized', vim.log.levels.WARN)
     return
   end
 
-  local text, _ = refs.parser.get_text_at_cursor()
+  local context_mod = require('comment-translate.context')
+  local bufnr = vim.api.nvim_get_current_buf()
+  local text, node_type = refs.parser.get_text_at_cursor()
   if not text then
     vim.notify('No comment or string found', vim.log.levels.INFO)
     return
   end
 
+  -- Show loading indicator if enabled
+  if refs.config.config.hover.loading then
+    refs.ui.hover.show_loading()
+  end
+  
+  local ctx = context_mod.collect(bufnr, nil, nil, node_type)
   refs.translate.translate(text, nil, nil, function(result)
     if result then
       refs.ui.hover.show(result)
     else
+      refs.ui.hover.close()
       vim.notify('Translation failed', vim.log.levels.ERROR)
     end
-  end)
+  end, nil, ctx)
 end
 
 return M

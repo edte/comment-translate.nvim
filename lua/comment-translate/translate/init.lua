@@ -2,6 +2,7 @@ local M = {}
 
 M.SERVICES = {
   google = 'google',
+  codebuddy = 'codebuddy',
 }
 
 ---@param service_name? string
@@ -13,6 +14,8 @@ local function get_service(service_name)
 
   if service_name == M.SERVICES.google then
     return require('comment-translate.translate.google'), nil
+  elseif service_name == M.SERVICES.codebuddy then
+    return require('comment-translate.translate.codebuddy'), nil
   else
     return nil, 'Unknown translate service: ' .. tostring(service_name)
   end
@@ -24,7 +27,8 @@ end
 ---@param source_lang? string Source language code
 ---@param callback fun(result: string?) Callback with translated text or nil on error
 ---@param service_name? string Override translation service
-function M.translate(text, target_lang, source_lang, callback, service_name)
+---@param context? TranslateContext Optional context information for better translation
+function M.translate(text, target_lang, source_lang, callback, service_name, context)
   if not callback then
     vim.notify('comment-translate: callback is required for translate()', vim.log.levels.ERROR)
     return
@@ -42,12 +46,12 @@ function M.translate(text, target_lang, source_lang, callback, service_name)
     return
   end
 
-  service.translate(text, target_lang, source_lang, callback)
+  service.translate(text, target_lang, source_lang, callback, context)
 end
 
 ---@return string[]
 function M.get_available_services()
-  return { M.SERVICES.google }
+  return { M.SERVICES.google, M.SERVICES.codebuddy }
 end
 
 return M
